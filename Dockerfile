@@ -27,3 +27,5 @@ RUN curl -sSO https://dl.google.com/cloudagents/add-monitoring-agent-repo.sh && 
 ADD collectd.conf /etc/stackdriver/collectd.conf
 
 COPY --from=build-env collectd/.libs/ping.so /opt/stackdriver/collectd/lib/x86_64-linux-gnu/collectd/
+
+CMD /opt/stackdriver/collectd/sbin/stackdriver-collectd -C /etc/stackdriver/collectd.conf -f
