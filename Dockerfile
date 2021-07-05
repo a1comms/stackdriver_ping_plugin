@@ -5,7 +5,10 @@ RUN apt-get update && \
 
 RUN git clone --depth=1 --branch 6.1.3 https://github.com/Stackdriver/collectd.git 
 
-ADD ping.c collectd/src/ping.c
+ADD patches/0001-write-pings-to-stdout.patch collectd/0001-write-pings-to-stdout.patch
+
+RUN cd collectd && \
+    git am 0001-write-pings-to-stdout.patch
 
 RUN cd collectd && \
     ./build.sh && \

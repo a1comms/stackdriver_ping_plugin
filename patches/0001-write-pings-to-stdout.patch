@@ -1,0 +1,31 @@
+From e4c6c430480ae0c9344f1ccb09b30e9857559e5f Mon Sep 17 00:00:00 2001
+From: Samuel Melrose <sam.melrose@a1comms.com>
+Date: Mon, 5 Jul 2021 10:15:21 +0100
+Subject: [PATCH] write pings to stdout
+
+---
+ src/ping.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/src/ping.c b/src/ping.c
+index 8cefeed..7e9c2ab 100644
+--- a/src/ping.c
++++ b/src/ping.c
+@@ -638,6 +638,14 @@ static int ping_read(void) /* {{{ */
+     submit(hl->host, "ping", latency_average);
+     submit(hl->host, "ping_stddev", latency_stddev);
+     submit(hl->host, "ping_droprate", droprate);
++
++    FILE *fp;
++    fp = fopen("/dev/stderr", "a");
++    if (fp == NULL) {
++        ERROR("I couldn't open /dev/stderr for appending.\n");
++    }
++    fprintf(fp, "{\"time\": \"%lu\", \"to\": \"%s\", \"latency_average\": %f, \"latency_stddev\": %f, \"droprate\": %f }\n", (unsigned long)time(NULL),hl->host, latency_average, latency_stddev, droprate);
++    fclose(fp);
+   } /* }}} for (hl = hostlist_head; hl != NULL; hl = hl->next) */
+ 
+   return 0;
+-- 
+2.20.1
+
