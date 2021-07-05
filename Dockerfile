@@ -8,6 +8,8 @@ RUN git clone --depth=1 --branch 6.1.3 https://github.com/Stackdriver/collectd.g
 ADD patches/0001-write-pings-to-stdout.patch collectd/0001-write-pings-to-stdout.patch
 
 RUN cd collectd && \
+    git config --global user.name "Cloud Build" && \
+    git config --global user.email "build@cloud.google.com" && \
     git am 0001-write-pings-to-stdout.patch
 
 RUN cd collectd && \
