@@ -1,9 +1,9 @@
-FROM debian:8 as build-env
+FROM debian:bullseye as build-env
 
 RUN apt-get update && \
     apt-get install -y git gcc build-essential flex bison autoconf automake libtool libltdl3-dev liboping-dev pkg-config
 
-RUN git clone --depth=1 --branch 6.1.3 https://github.com/Stackdriver/collectd.git 
+RUN git clone --depth=1 --branch 6.3.0 https://github.com/Stackdriver/collectd.git 
 
 ADD patches/0001-write-pings-to-stdout.patch collectd/0001-write-pings-to-stdout.patch
 
@@ -17,7 +17,7 @@ RUN cd collectd && \
     ./configure --enable-ping && \
     make
 
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 
