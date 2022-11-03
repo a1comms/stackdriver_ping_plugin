@@ -1,36 +1,37 @@
 FROM debian:bullseye as build-env
 
+ARG DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update && \
     apt-get install -y git gcc build-essential flex bison autoconf automake libtool libltdl3-dev liboping-dev pkg-config
 
-RUN git clone --depth=1 --branch 6.3.0 https://github.com/Stackdriver/collectd.git 
+RUN git clone --depth=1 --branch collectd-5.12.0 https://github.com/collectd/collectd.git 
 
 ADD patches/0001-write-pings-to-stdout.patch collectd/0001-write-pings-to-stdout.patch
+ADD patches/0002-stop-log-spam.patch collectd/0002-stop-log-spam.patch
 
 RUN cd collectd && \
     git config --global user.name "Cloud Build" && \
     git config --global user.email "build@cloud.google.com" && \
-    git am 0001-write-pings-to-stdout.patch
+    git am 0001-write-pings-to-stdout.patch && \
+    git am 0002-stop-log-spam.patch
 
 RUN cd collectd && \
     ./build.sh && \
-    ./configure --enable-ping && \
-    make
+    ./configure --prefix=/opt/collectd --enable-ping && \
+    make && \
+    make install
 
-FROM ubuntu:22.04
+FROM debian:bullseye
 
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
-    apt-get install -y liboping-dev curl gnupg
+    apt-get dist-upgrade -y && \
+    apt-get install -y liboping-dev
 
-RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
-
-RUN curl -sSO https://dl.google.com/cloudagents/add-monitoring-agent-repo.sh && \
-    bash add-monitoring-agent-repo.sh --also-install
+COPY --from=build-env /opt/collectd/ /opt/collectd/
 
 ADD collectd.conf /etc/stackdriver/collectd.conf
 
-COPY --from=build-env collectd/.libs/ping.so /opt/stackdriver/collectd/lib/x86_64-linux-gnu/collectd/
-
-CMD /opt/stackdriver/collectd/sbin/stackdriver-collectd -C /etc/stackdriver/collectd.conf -f
+CMD /opt/collectd/sbin/collectd -C /etc/stackdriver/collectd.conf -f

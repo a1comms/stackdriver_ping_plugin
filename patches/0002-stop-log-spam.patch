@@ -1,0 +1,60 @@
+From ab9014de1e41a566523e2af475cbcdf2bbaf4d1c Mon Sep 17 00:00:00 2001
+From: Samuel Melrose <sam.melrose@a1comms.com>
+Date: Thu, 3 Nov 2022 14:22:50 +0000
+Subject: [PATCH] stop log spam
+
+---
+ src/daemon/filter_chain.c | 4 ++--
+ src/daemon/plugin.c       | 6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/daemon/filter_chain.c b/src/daemon/filter_chain.c
+index 2b5f50d3..102fb451 100644
+--- a/src/daemon/filter_chain.c
++++ b/src/daemon/filter_chain.c
+@@ -700,14 +700,14 @@ static int fc_bit_write_invoke(const data_set_t *ds, /* {{{ */
+     if (status == ENOENT) {
+       /* in most cases this is a permanent error, so use the complain
+        * mechanism rather than spamming the logs */
+-      c_complain(
++      /* c_complain(
+           LOG_INFO, &write_complaint,
+           "Filter subsystem: Built-in target `write': Dispatching value to "
+           "all write plugins failed with status %i (ENOENT). "
+           "Most likely this means you didn't load any write plugins.",
+           status);
+ 
+-      plugin_log_available_writers();
++      plugin_log_available_writers(); */
+     } else if (status != 0) {
+       /* often, this is a permanent error (e.g. target system unavailable),
+        * so use the complain mechanism rather than spamming the logs */
+diff --git a/src/daemon/plugin.c b/src/daemon/plugin.c
+index 12255f13..f2ce9ca5 100644
+--- a/src/daemon/plugin.c
++++ b/src/daemon/plugin.c
+@@ -2064,7 +2064,7 @@ void plugin_dispatch_cache_event(enum cache_event_type_e event_type,
+ 
+ static int plugin_dispatch_values_internal(value_list_t *vl) {
+   int status;
+-  static c_complain_t no_write_complaint = C_COMPLAIN_INIT_STATIC;
++  // static c_complain_t no_write_complaint = C_COMPLAIN_INIT_STATIC;
+ 
+   bool free_meta_data = false;
+ 
+@@ -2089,10 +2089,10 @@ static int plugin_dispatch_values_internal(value_list_t *vl) {
+     free_meta_data = true;
+ 
+   if (list_write == NULL)
+-    c_complain_once(LOG_WARNING, &no_write_complaint,
++    /* c_complain_once(LOG_WARNING, &no_write_complaint,
+                     "plugin_dispatch_values: No write callback has been "
+                     "registered. Please load at least one output plugin, "
+-                    "if you want the collected data to be stored.");
++                    "if you want the collected data to be stored."); */
+ 
+   if (data_sets == NULL) {
+     ERROR("plugin_dispatch_values: No data sets registered. "
+-- 
+2.20.1
+
